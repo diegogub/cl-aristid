@@ -6,7 +6,8 @@
   point
   prev-point
   corners ;left top right bottom
-  stack)
+  stack
+  point-list)
 
 (setq *random-state* (make-random-state t))
 (setq *random-red* (random 255))
@@ -34,16 +35,12 @@
     (%make-canvas :matrix matrix :dir (list 0 1)
                               :point init-point :prev-point init-point
                               :corners (list 5000 5000 5000 5000)
-                              :stack (list))))
+                              :stack (list)
+                              :point-list (list))))
 
 (defun draw-point (canvas &optional (color ""))
   (if (string= color "rainbow") (setq color (get-next-color)))
-  (cl-svg:draw (canvas-matrix canvas)
-               (:line  :x1 (first (canvas-prev-point canvas))
-                       :y1 (second (canvas-prev-point canvas))
-                       :x2 (first (canvas-point canvas))
-                       :y2 (second (canvas-point canvas)))
-                       :stroke color)
+  (setf (canvas-point-list canvas) (cons (copy-list (canvas-point canvas)) (canvas-point-list canvas)))
     canvas)
 
 (defun canvas-move (canvas)
@@ -96,8 +93,23 @@
     (setf (canvas-point canvas) point)
     (setf (canvas-prev-point canvas) prev-point)
     (setf (canvas-dir canvas) dir))
+  (setf canvas (end-polyline canvas))
   canvas)
 
 (defun svg-add-iteration (svg canvas)
   (cl-svg:add-element svg (canvas-matrix canvas))
   svg)
+
+(defun points-to-format (points)
+  (let ((formats (list)))
+    (dolist (point points)
+      (setq formats (cons (format nil "~,2f,~,2f " (first point) (second point)) formats)))
+    (format nil "~{~a~^ ~}" formats)))
+
+(defun end-polyline (canvas)
+  (cl-svg:draw (canvas-matrix canvas)
+               (:polyline  
+                :points (points-to-format (canvas-point-list canvas))
+                :fill "none"))
+  (setf (canvas-point-list canvas) (list (copy-list (canvas-point canvas))))
+  canvas)

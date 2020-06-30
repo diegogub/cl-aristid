@@ -16,7 +16,8 @@
       (dotimes (n len)
         (setq canvas (canvas-move canvas))
         (if (null nodraw)
-          (draw-point canvas color)))
+          (draw-point canvas color)
+          (setq canvas (end-polyline canvas))))
       (setq canvas (turn-angle canvas angle))
       canvas))
 

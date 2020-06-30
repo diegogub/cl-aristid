@@ -30,5 +30,6 @@
                                    (fractal-rules fractal)))
          (canvas (make-canvas))
          (svg (create-svg (apply-commands canvas command-arr))))
+    (setf canvas (end-polyline canvas))
     (svg-add-iteration svg canvas)
     svg))
